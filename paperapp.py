@@ -88,8 +88,8 @@ def main():
     current_time = datetime.now(eastern).strftime("%m-%d %H:%M:%S")
     
     ########## B and S actions
-    def save_pe(type="AAA", price=None, total =0): 
-        updated_data = pd.read_csv(pe_file, names=["type", "B_pr", "S_pr", "pl", "total", "temp_pr"])
+    def save_pe(type="AAA", price=None, total =0, note="zzz"): 
+        updated_data = pd.read_csv(pe_file, names=["type", "B_pr", "S_pr", "pl", "total", "temp_pr", "note"])
         pl=0
         if type == "S":
             pl = price - updated_data["temp_pr"].iloc[-1]
@@ -108,6 +108,7 @@ def main():
                     "pl": pl,
                     "total": round(total, 2),
                     "temp_price": round(price, 2),
+                    "note": note
                 }])
 
         elif type == "S":
@@ -119,6 +120,7 @@ def main():
                     "pl": round(pl, 2),
                     "total": round(total, 2),
                     "temp_price": 0,
+                    "note": note
                 }])
 
         elif type == "SS":
@@ -130,6 +132,7 @@ def main():
                     "pl": 0,
                     "total": total, ## for now
                     "temp_price": round(price, 2),
+                    "note": note
                 }])
 
         elif type == "SB": 
@@ -141,6 +144,7 @@ def main():
                     "pl": round(pl, 2),
                     "total": round(total, 2),
                     "temp_price": 0,
+                    "note": note
                 }])
         # Append to CSV file
         new_data.to_csv(pe_file, mode="a", header=False, index=False)
@@ -149,12 +153,13 @@ def main():
 # Initialize the session state variable if it doesn't exist
     if "setpr" not in st.session_state:
         st.session_state.setpr = 0.0
-    if "settype" not in st.session_state:
-        st.session_state.settype = "zz"
+        
+    if "setnote" not in st.session_state:
+        st.session_state.setnote = "zzz"
 # Create a text input that displays the current session state value
 
     setpr_input = st.text_input("Enter set pr: ", value=str(st.session_state.setpr))
-    
+    setnote_input = st.text_input("Enter note: ", value=str(st.session_state.setnote))
     #set them
     col1, col2=st.columns(2)
     with col1:
@@ -162,6 +167,7 @@ def main():
             try:
     # Attempt to convert the input to a float and update the session state
                 st.session_state.setpr = float(setpr_input)
+                st.session_state.setnote = str(setnote_input)
                 st.session_state.confirmation_message = f"Success!"
             except ValueError:
     # Handle invalid input (non-numeric values)
@@ -169,9 +175,9 @@ def main():
             st.rerun()
 # Display the current value of setpr from the session state
     with col2:
-        st.write(f"setpr: {st.session_state.setpr}")
+        st.write(f"setpr: {st.session_state.setpr}__setnote:{st.session_state.setnote}")
 
-    updated_data = pd.read_csv(pe_file, names=["type", "B_pr", "S_pr", "pl", "total", "temp_pr"])
+    updated_data = pd.read_csv(pe_file, names=["type", "B_pr", "S_pr", "pl", "total", "temp_pr", "note"])
     
     col1, col2, col3, col4 = st.columns(4)
     total = updated_data["total"].iloc[-1]
@@ -179,7 +185,7 @@ def main():
     with col1:
         if st.button("B >>"):
             if  (SB == "AAA" or SB == "S" or SB== "SB") and st.session_state.setpr != 0:
-                save_pe("B", st.session_state.setpr, total)
+                save_pe("B", st.session_state.setpr, total,st.session_state.setnote)
                 st.session_state.setpr = 0
                 st.write("Success B!")
                 st.rerun()
@@ -187,7 +193,7 @@ def main():
     with col2:
         if st.button("S >>"):
             if  SB == "B" and st.session_state.setpr != 0:
-                save_pe("S", st.session_state.setpr, total)
+                save_pe("S", st.session_state.setpr, total, st.session_state.setnote)
                 st.session_state.setpr = 0
                 st.write("Success S!")
                 st.rerun()
@@ -196,7 +202,7 @@ def main():
     with col3:
         if st.button("Sh_S >>"):
             if (SB == "AAA" or SB == "S" or SB== "SB") and st.session_state.setpr != 0:
-                save_pe("SS", st.session_state.setpr, total)
+                save_pe("SS", st.session_state.setpr, total, st.session_state.setnote)
                 st.session_state.setpr = 0
                 st.write("Success Sh_S!")
                 st.rerun()
@@ -204,7 +210,7 @@ def main():
     with col4:
         if st.button("Sh_B >>"):
             if SB == "SS" and st.session_state.setpr != 0:
-                save_pe("SB", st.session_state.setpr, total)
+                save_pe("SB", st.session_state.setpr, total, st.session_state.setnote)
                 st.session_state.setpr = 0
                 st.rerun()
             
@@ -215,7 +221,7 @@ def main():
 
     #display pe_table
     # Read the updated CSV file ---- example
-    updated_data = pd.read_csv(pe_file, names=["type", "B_pr", "S_pr", "pl", "total", "temp_pr"])
+    updated_data = pd.read_csv(pe_file, names=["type", "B_pr", "S_pr", "pl", "total", "temp_pr", "note"])
 
     st.markdown(f'<p style="color:orange; font-weight:bold;">pe_table: </s></p>', unsafe_allow_html=True)
     
@@ -237,6 +243,7 @@ def main():
                     "pl": 0,
                     "total": 0, 
                     "temp_pr": 0
+                    "note":"zzz"
                 }])
                 # clear CSV file
         new_data.to_csv(pe_file, mode="w", header=False, index=False)

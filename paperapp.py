@@ -152,7 +152,7 @@ def main():
    
 # Initialize the session state variable if it doesn't exist
     if "setpr" not in st.session_state:
-        st.session_state.setpr = 0.0
+        st.session_state.setpr = 0
         
     if "setnote" not in st.session_state:
         st.session_state.setnote = "zzz"

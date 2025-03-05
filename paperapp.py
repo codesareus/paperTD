@@ -157,9 +157,11 @@ def main():
     if "setnote" not in st.session_state:
         st.session_state.setnote = "zzz"
 # Create a text input that displays the current session state value
-
-    setpr_input = st.text_input("Enter set pr: ", value=str(st.session_state.setpr))
-    setnote_input = st.text_input("Enter note: ", value=str(st.session_state.setnote))
+    col1, col2 = st.columns(2)
+    with col1:
+        setpr_input = st.text_input("Enter set pr: ", value=str(st.session_state.setpr))
+    with col2:
+        setnote_input = st.text_input("Enter note: ", value=str(st.session_state.setnote))
     #set them
     col1, col2=st.columns(2)
     with col1:

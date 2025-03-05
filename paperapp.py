@@ -242,7 +242,7 @@ def main():
                     "S_pr": 0,
                     "pl": 0,
                     "total": 0, 
-                    "temp_pr": 0
+                    "temp_pr": 0,
                     "note":"zzz"
                 }])
                 # clear CSV file

@@ -59,6 +59,10 @@ def main():
 
     st.write(f"Start Time: {start_time}, End Time: {end_time}")
 
+    response = requests.get(url)
+    st.write(response.status_code, response.text)  # Print full response
+
+
     # Input box for user to enter stock ticker
     ticker = st.text_input("Enter Stock Ticker (e.g., SPY, AAPL, TSLA):", value="SPY").upper()
 

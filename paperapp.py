@@ -38,13 +38,15 @@ def fetch_stock_data_finnhub(ticker, interval="1", start_time=None, end_time=Non
         # Default to last 5 days of data
 
         # Get current time in UTC
-        end_time = int(datetime.utcnow().timestamp())  # Ensure it's in UTC
-        start_time = int((datetime.utcnow() - timedelta(days=5)).timestamp())  # 5 days ago
+        #end_time = int(datetime.utcnow().timestamp())  # Ensure it's in UTC
+       # start_time = int((datetime.utcnow() - timedelta(days=5)).timestamp())  # 5 days ago
 
+        
+        end_time = int(datetime.now().timestamp())
+        start_time = int((datetime.now() - timedelta(days=5)).timestamp())
+        
         st.write(f"Start Time: {start_time}, End Time: {end_time}")  # Debug
-        #end_time = int(datetime.now().timestamp())
-        #start_time = int((datetime.now() - timedelta(days=5)).timestamp())
-
+        
         url = f"https://finnhub.io/api/v1/stock/candle?symbol={ticker}&resolution={interval}&from={start_time}&to={end_time}&token={FINNHUB_API_KEY}"
         response = requests.get(url)
 

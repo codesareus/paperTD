@@ -30,7 +30,7 @@ def fetch_stock_data_finnhub(ticker, interval="1", start_time=None, end_time=Non
         end_time = int(datetime.utcnow().timestamp())  # Ensure it's in UTC
         start_time = int((datetime.utcnow() - timedelta(days=5)).timestamp())  # 5 days ago
 
-        print(f"Start Time: {start_time}, End Time: {end_time}")  # Debug
+        st.write(f"Start Time: {start_time}, End Time: {end_time}")  # Debug
         #end_time = int(datetime.now().timestamp())
         #start_time = int((datetime.now() - timedelta(days=5)).timestamp())
 

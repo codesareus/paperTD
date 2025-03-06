@@ -10,7 +10,13 @@ from datetime import datetime, timedelta
 import pytz
 import requests
 
-from datetime import datetime
+from datetime import datetime, timezone  # Import timezone
+
+# Create a timezone-aware UTC datetime object
+utc_time = datetime.now(timezone.utc)
+
+# Get the correct UNIX timestamp
+st.write("Current UNIX Timestamp:", int(utc_time.timestamp()))
 
 st.write("Current UNIX Timestamp:", int(datetime.utcnow().timestamp()))
 

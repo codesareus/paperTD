@@ -50,33 +50,6 @@ def fetch_stock_data_finnhub(ticker, interval="1", start_time=None, end_time=Non
     df.set_index("Time", inplace=True)
     return df
 
-# Function to fetch daily close prices for the last 5 days
-def fetch_daily5_finnhub(ticker):
-    """
-    Fetches the last 5 days of daily close prices from Finnhub API.
-    :param ticker: Stock ticker symbol (e.g., "AAPL")
-    :return: Series of close prices
-    """
-    end_time = int(datetime.now().timestamp())
-    start_time = int((datetime.now() - timedelta(days=5)).timestamp())
-    url = f"https://finnhub.io/api/v1/stock/candle?symbol={ticker}&resolution=D&from={start_time}&to={end_time}&token={FINNHUB_API_KEY}"
-    response = requests.get(url)
-    if response.status_code != 200:
-        st.error(f"Failed to fetch daily data for {ticker}. Please check the ticker and try again.")
-        return None
-
-    data = response.json()
-    if data.get("s") != "ok":
-        st.error(f"No data available for {ticker}. Please check the ticker and try again.")
-        return None
-
-    df = pd.DataFrame({
-        "Time": pd.to_datetime(data["t"], unit="s"),
-        "Close": data["c"]
-    })
-    df.set_index("Time", inplace=True)
-    return df["Close"]
-
 
 # Streamlit app
 def main():

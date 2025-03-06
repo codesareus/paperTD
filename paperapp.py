@@ -63,10 +63,8 @@ def fetch_stock_data_finnhub(ticker, interval="1", start_time=None, end_time=Non
 # Streamlit app
 def main():
     st.title("finnhub")
-    end_time = int(datetime.now().timestamp())
-    start_time = int((datetime.now() - timedelta(days=5)).timestamp())
-
-    st.write(f"Start Time: {start_time}, End Time: {end_time}")
+    if "interval" not in session_state:
+        session_state.interval="1_min"
 
     # Input box for user to enter stock ticker
     ticker = st.text_input("Enter Stock Ticker (e.g., SPY, AAPL, TSLA):", value="SPY").upper()
@@ -75,7 +73,7 @@ def main():
     col1, col2, col3 = st.columns(3)
     with col1:
         if st.button("1 Minute"):
-            interval = "1"
+            interval = "1_min"
     with col2:
         if st.button("5 Minutes", key="5m"):
             interval = "5"
@@ -84,18 +82,17 @@ def main():
             interval = "30"
 
     # Default interval
-    if 'interval' not in locals():
-        interval = "1"
+
 
     # Add a button to refresh data
     if st.button("Refresh Data"):
         st.cache_data.clear()  # Clear cached data to force a fresh fetch
 
     # Fetch data for the user-specified stock and interval
-    data = fetch_stock_data_finnhub(ticker, interval=interval)
-    if data.empty:
-        st.error(f"Failed to fetch data for {ticker}. Please check the ticker and try again.")
-        return
+        data = fetch_stock_data_finnhub(ticker, interval=session_state.interval)
+        if data.empty:
+            st.error(f"Failed to fetch data for {ticker}. Please check the ticker and try again.")
+            return
 
     # Add a slider for backtracking
     

@@ -89,10 +89,10 @@ def main():
         st.cache_data.clear()  # Clear cached data to force a fresh fetch
 
     # Fetch data for the user-specified stock and interval
-        data = fetch_stock_data_finnhub(ticker, interval=st.session_state.interval)
-        if data.empty:
-            st.error(f"Failed to fetch data for {ticker}. Please check the ticker and try again.")
-            return
+    data = fetch_stock_data_finnhub(ticker, interval=st.session_state.interval)
+    if data.empty:
+        st.error(f"Failed to fetch data for {ticker}. Please check the ticker and try again.")
+        return
 
     # Add a slider for backtracking
     

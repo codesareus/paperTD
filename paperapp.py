@@ -10,6 +10,11 @@ from datetime import datetime, timedelta
 import pytz
 import requests
 
+from datetime import datetime
+
+st.write("Current UNIX Timestamp:", int(datetime.utcnow().timestamp()))
+
+
 # Finnhub API key
 FINNHUB_API_KEY = "cgtch1hr01qoiqvovb4gcgtch1hr01qoiqvovb50"  # Replace with your actual Finnhub API key
 
@@ -34,35 +39,38 @@ def fetch_stock_data_finnhub(ticker, interval="1", start_time=None, end_time=Non
         #end_time = int(datetime.now().timestamp())
         #start_time = int((datetime.now() - timedelta(days=5)).timestamp())
 
-    url = f"https://finnhub.io/api/v1/stock/candle?symbol={ticker}&resolution={interval}&from={start_time}&to={end_time}&token={FINNHUB_API_KEY}"
-    response = requests.get(url)
+        url = f"https://finnhub.io/api/v1/stock/candle?symbol={ticker}&resolution={interval}&from={start_time}&to={end_time}&token={FINNHUB_API_KEY}"
+        response = requests.get(url)
 
-    st.write(response.status_code, response.text)  # Print full response
+        st.write(response.status_code, response.text)  # Print full response
     
-    if response.status_code != 200:
-        st.error(f"Failed to fetch data for {ticker}. Please check the ticker and try again.")
-        return pd.DataFrame()
+        if response.status_code != 200:
+            st.error(f"Failed to fetch data for {ticker}. Please check the ticker and try again.")
+            return pd.DataFrame()
 
-    data = response.json()
-    if data.get("s") != "ok":
-        st.error(f"No data available for {ticker}. Please check the ticker and try again.")
-        return pd.DataFrame()
+        data = response.json()
+        if data.get("s") != "ok":
+            st.error(f"No data available for {ticker}. Please check the ticker and try again.")
+            return pd.DataFrame()
 
-    df = pd.DataFrame({
-        "Time": pd.to_datetime(data["t"], unit="s"),
-        "Open": data["o"],
-        "High": data["h"],
-        "Low": data["l"],
-        "Close": data["c"],
-        "Volume": data["v"]
-    })
-    df.set_index("Time", inplace=True)
-    return df
+        df = pd.DataFrame({
+            "Time": pd.to_datetime(data["t"], unit="s"),
+            "Open": data["o"],
+            "High": data["h"],
+            "Low": data["l"],
+            "Close": data["c"],
+            "Volume": data["v"]
+        })
+        df.set_index("Time", inplace=True)
+        return df
 
 
 # Streamlit app
 def main():
     st.title("finnhub")
+    st.write("Current UNIX Timestamp:", int(datetime.utcnow().timestamp()))
+    st.write("Current UNIX Timestamp:", int(datetime.utcnow().timestamp()))
+    
     if "interval" not in st.session_state:
         st.session_state.interval="1"
 

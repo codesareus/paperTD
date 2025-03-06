@@ -30,6 +30,9 @@ def fetch_stock_data_finnhub(ticker, interval="1", start_time=None, end_time=Non
 
     url = f"https://finnhub.io/api/v1/stock/candle?symbol={ticker}&resolution={interval}&from={start_time}&to={end_time}&token={FINNHUB_API_KEY}"
     response = requests.get(url)
+
+    st.write(response.status_code, response.text)  # Print full response
+    
     if response.status_code != 200:
         st.error(f"Failed to fetch data for {ticker}. Please check the ticker and try again.")
         return pd.DataFrame()
@@ -58,10 +61,6 @@ def main():
     start_time = int((datetime.now() - timedelta(days=5)).timestamp())
 
     st.write(f"Start Time: {start_time}, End Time: {end_time}")
-
-    response = requests.get(url)
-    st.write(response.status_code, response.text)  # Print full response
-
 
     # Input box for user to enter stock ticker
     ticker = st.text_input("Enter Stock Ticker (e.g., SPY, AAPL, TSLA):", value="SPY").upper()

@@ -54,7 +54,11 @@ def fetch_stock_data_finnhub(ticker, interval="1", start_time=None, end_time=Non
 # Streamlit app
 def main():
     st.title("finnhub")
-    
+    end_time = int(datetime.now().timestamp())
+    start_time = int((datetime.now() - timedelta(days=5)).timestamp())
+
+    st.write(f"Start Time: {start_time}, End Time: {end_time}")
+
     # Input box for user to enter stock ticker
     ticker = st.text_input("Enter Stock Ticker (e.g., SPY, AAPL, TSLA):", value="SPY").upper()
 

@@ -1,7 +1,4 @@
-### daily analysis 03-03-25
-
 import streamlit as st
-import yfinance as yf
 import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression
@@ -9,252 +6,252 @@ from sklearn.preprocessing import PolynomialFeatures
 from sklearn.metrics import r2_score
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-from datetime import datetime, timedelta
-from pytz import timezone
+from datetime import datetime
 import pytz
-from gtts import gTTS
-import os
-import time
-from datetime import datetime, time
-from time import sleep
-from matplotlib.lines import Line2D
-import pandas_market_calendars as mcal
+import requests
 
-#eastern = pytz.timezone("America/New")
-eastern = pytz.timezone("US/Eastern")
+# Finnhub API key
+FINNHUB_API_KEY = "cgtch1hr01qoiqvovb4gcgtch1hr01qoiqvovb50"  # Replace with your actual Finnhub API key
 
-def get_time_now():
-    eastern = timezone('US/Eastern')
-    now = datetime.now(eastern)
-    now_time = now.time()
-    
-    # Get market calendar for NYSE
-    nyse = mcal.get_calendar("NYSE")
-    
-    # Check if today is a market holiday
-    today = now.date()
-    holidays = nyse.holidays().holidays
-    if today in holidays:
-        return "holiday"
+# Function to fetch stock data from Finnhub API
+def fetch_stock_data_finnhub(ticker, interval="1", start_time=None, end_time=None):
+    """
+    Fetches stock data from Finnhub API.
+    :param ticker: Stock ticker symbol (e.g., "AAPL")
+    :param interval: Time interval in minutes ("1", "5", "30")
+    :param start_time: Start time in UNIX timestamp
+    :param end_time: End time in UNIX timestamp
+    :return: DataFrame with stock data
+    """
+    if not start_time or not end_time:
+        # Default to last 5 days of data
+        end_time = int(datetime.now().timestamp())
+        start_time = int((datetime.now() - timedelta(days=5)).timestamp())
 
-    # Pre-market (4:00 AM - 9:30 AM)
-    if datetime.strptime("04:00", "%H:%M").time() <= now_time < datetime.strptime("09:30", "%H:%M").time():
-        return "pre"
-    
-    # Open wind (9:25 AM - 9:35 AM)
-    if datetime.strptime("09:25", "%H:%M").time() <= now_time < datetime.strptime("09:35", "%H:%M").time():
-        return "open_wind"
-    
-    # Regular market hours (9:35 AM - 3:55 PM)
-    if datetime.strptime("09:35", "%H:%M").time() <= now_time < datetime.strptime("15:55", "%H:%M").time():
-        return "open"
-    
-    # Close wind-down (3:55 PM - 4:00 PM)
-    if datetime.strptime("15:55", "%H:%M").time() <= now_time < datetime.strptime("16:00", "%H:%M").time():
-        return "close_wind"
-    
-    # After-hours (4:00 PM - 8:00 PM)
-    if datetime.strptime("16:00", "%H:%M").time() <= now_time < datetime.strptime("20:00", "%H:%M").time():
-        return "after_hours"
-    
-    # Market closed
-    return "closed"
+    url = f"https://finnhub.io/api/v1/stock/candle?symbol={ticker}&resolution={interval}&from={start_time}&to={end_time}&token={FINNHUB_API_KEY}"
+    response = requests.get(url)
+    if response.status_code != 200:
+        st.error(f"Failed to fetch data for {ticker}. Please check the ticker and try again.")
+        return pd.DataFrame()
 
+    data = response.json()
+    if data.get("s") != "ok":
+        st.error(f"No data available for {ticker}. Please check the ticker and try again.")
+        return pd.DataFrame()
 
+    df = pd.DataFrame({
+        "Time": pd.to_datetime(data["t"], unit="s"),
+        "Open": data["o"],
+        "High": data["h"],
+        "Low": data["l"],
+        "Close": data["c"],
+        "Volume": data["v"]
+    })
+    df.set_index("Time", inplace=True)
+    return df
 
-        
+# Function to fetch daily close prices for the last 5 days
+def fetch_daily5_finnhub(ticker):
+    """
+    Fetches the last 5 days of daily close prices from Finnhub API.
+    :param ticker: Stock ticker symbol (e.g., "AAPL")
+    :return: Series of close prices
+    """
+    end_time = int(datetime.now().timestamp())
+    start_time = int((datetime.now() - timedelta(days=5)).timestamp())
+    url = f"https://finnhub.io/api/v1/stock/candle?symbol={ticker}&resolution=D&from={start_time}&to={end_time}&token={FINNHUB_API_KEY}"
+    response = requests.get(url)
+    if response.status_code != 200:
+        st.error(f"Failed to fetch daily data for {ticker}. Please check the ticker and try again.")
+        return None
+
+    data = response.json()
+    if data.get("s") != "ok":
+        st.error(f"No data available for {ticker}. Please check the ticker and try again.")
+        return None
+
+    df = pd.DataFrame({
+        "Time": pd.to_datetime(data["t"], unit="s"),
+        "Close": data["c"]
+    })
+    df.set_index("Time", inplace=True)
+    return df["Close"]
+
+rom datetime import datetime
+import pytz
+
+# Function to fetch the previous day's close price
+def fetch_previous_close(ticker):
+    close_prices = fetch_daily5(ticker)
+    if close_prices is None:
+        return None  # Handle cases where there isn't enough data
+    
+    # Get current time in NY (US Eastern Time)
+    midwest = pytz.timezone("America/chicago")
+    now = datetime.now(midwest)  # Use datetime from the imported module
+    
+    # Define US market hours
+    market_open = now.replace(hour=8, minute=30, second=0, microsecond=0)
+    market_close = now.replace(hour=15, minute=0, second=0, microsecond=0)
+    
+    if now < market_open or now > market_close:  # Pre-market or post-market
+        previous_close = close_prices[-1]  # Use the previous day's close
+    else:
+        previous_close = close_prices[-2]  # Use the most recent close
+    
+    return previous_close
+# Function to fetch the day before yesterday's close price
+def fetch_d2_close_finnhub(ticker):
+    close_prices = fetch_daily5_finnhub(ticker)
+    if close_prices is None or len(close_prices) < 3:
+        return None  # Handle cases where there isn't enough data
+
+    # Get current time in NY (US Eastern Time)
+    midwest = pytz.timezone("America/chicago")
+    now = datetime.now(midwest)
+
+    # Define US market hours
+    market_open = now.replace(hour=8, minute=30, second=0, microsecond=0)
+    market_close = now.replace(hour=15, minute=0, second=0, microsecond=0)
+
+    if now < market_open or now > market_close:  # Pre-market or post-market
+        d2_close = close_prices[-2]  # Use the previous day's close
+    else:
+        d2_close = close_prices[-3]  # Use the most recent close
+
+    return d2_close
+
+# Rest of the code remains unchanged...
+
 # Streamlit app
 def main():
-    st.title("PaperTD ")
+    st.title("Stock Price Regression Analysis")
+    st.write("This app fetches stock prices at different intervals (including premarket data) and performs linear and polynomial regression analysis.")
 
-    #######################
-   
-    # Initialize temp_price state
-    if "temp_price" not in st.session_state:
-        st.session_state.temp_price = 0
+    # Input box for user to enter stock ticker
+    ticker = st.text_input("Enter Stock Ticker (e.g., SPY, AAPL, TSLA):", value="SPY").upper()
 
-    # Initialize sb_status state
-    if "sb_status" not in st.session_state:
-        st.session_state.sb_status = 0
-  
-    pe_file = f"pe.csv"
-
-    
-    
-   # Get current local time
-    eastern = pytz.timezone("US/Eastern")
-    #current_time = datetime.now(eastern).strftime("%H:%M:%S")
-    now = datetime.now(eastern).strftime("%I:%M:%S %p")
-    current_time = datetime.now(eastern).strftime("%m-%d %H:%M:%S")
-    
-    ########## B and S actions
-    def save_pe(type="AAA", price=None, total =0, note="zzz"): 
-        updated_data = pd.read_csv(pe_file, names=["type", "B_pr", "S_pr", "pl", "total", "temp_pr", "note"])
-        pl=0
-        if type == "S":
-            pl = price - updated_data["temp_pr"].iloc[-1]
-        elif type == "SB":
-            pl = updated_data["temp_pr"].iloc[-1] - price
-        else:
-            pl = 0
-        total = total + pl
-            
-        if type == "B":
-            new_data = pd.DataFrame([{
-                    "TimeStamp": f"{current_time}",
-                    "type": "B",
-                    "B_pr": round(price, 2),
-                    "S_pr": 0,
-                    "pl": pl,
-                    "total": round(total, 2),
-                    "temp_price": round(price, 2),
-                    "note": note
-                }])
-
-        elif type == "S":
-            new_data = pd.DataFrame([{
-                    "TimeStamp": f"{current_time}",
-                    "type": "S",
-                    "B_pr": 0,
-                    "S_pr": round(price, 2),
-                    "pl": round(pl, 2),
-                    "total": round(total, 2),
-                    "temp_price": 0,
-                    "note": note
-                }])
-
-        elif type == "SS":
-            new_data = pd.DataFrame([{
-                    "TimeStamp": f"{current_time}",
-                    "type": "SS",
-                    "B_pr": 0,
-                    "S_pr": round(price, 2),
-                    "pl": 0,
-                    "total": total, ## for now
-                    "temp_price": round(price, 2),
-                    "note": note
-                }])
-
-        elif type == "SB": 
-            new_data = pd.DataFrame([{
-                    "TimeStamp": f"{current_time}",
-                    "type": "SB",
-                    "B_pr": round(price, 2),
-                    "S_pr": 0,
-                    "pl": round(pl, 2),
-                    "total": round(total, 2),
-                    "temp_price": 0,
-                    "note": note
-                }])
-        # Append to CSV file
-        new_data.to_csv(pe_file, mode="a", header=False, index=False)
-            
-   
-# Initialize the session state variable if it doesn't exist
-    if "setpr" not in st.session_state:
-        st.session_state.setpr = 0
-        
-    if "setnote" not in st.session_state:
-        st.session_state.setnote = "zzz"
-# Create a text input that displays the current session state value
-    col1, col2 = st.columns(2)
+    # Add a button group for interval selection
+    col1, col2, col3 = st.columns(3)
     with col1:
-        setpr_input = st.text_input("Enter set pr: ", value=str(st.session_state.setpr))
+        if st.button("1 Minute"):
+            interval = "1"
     with col2:
-        setnote_input = st.text_input("Enter note: ", value=str(st.session_state.setnote))
-    #set them
-    col1, col2=st.columns(2)
-    with col1:
-        if st.button("set"):
-            try:
-    # Attempt to convert the input to a float and update the session state
-                st.session_state.setpr = float(setpr_input)
-                st.session_state.setnote = str(setnote_input)
-                st.session_state.confirmation_message = f"Success!"
-            except ValueError:
-    # Handle invalid input (non-numeric values)
-                st.error("Please enter a valid number or type")
-            st.rerun()
-# Display the current value of setpr from the session state
-    with col2:
-        st.write(f"setpr: {st.session_state.setpr}__setnote:{st.session_state.setnote}")
-
-    updated_data = pd.read_csv(pe_file, names=["type", "B_pr", "S_pr", "pl", "total", "temp_pr", "note"])
-    
-    col1, col2, col3, col4 = st.columns(4)
-    total = updated_data["total"].iloc[-1]
-    SB = updated_data["type"].iloc[-1]
-    with col1:
-        if st.button("B >>"):
-            if  (SB == "AAA" or SB == "S" or SB== "SB") and st.session_state.setpr != 0:
-                save_pe("B", st.session_state.setpr, total,st.session_state.setnote)
-                st.session_state.setpr = 0
-                st.write("Success B!")
-                st.rerun()
-            
-    with col2:
-        if st.button("S >>"):
-            if  SB == "B" and st.session_state.setpr != 0:
-                save_pe("S", st.session_state.setpr, total, st.session_state.setnote)
-                st.session_state.setpr = 0
-                st.write("Success S!")
-                st.rerun()
-
-
+        if st.button("5 Minutes", key="5m"):
+            interval = "5"
     with col3:
-        if st.button("Sh_S >>"):
-            if (SB == "AAA" or SB == "S" or SB== "SB") and st.session_state.setpr != 0:
-                save_pe("SS", st.session_state.setpr, total, st.session_state.setnote)
-                st.session_state.setpr = 0
-                st.write("Success Sh_S!")
-                st.rerun()
-                
-    with col4:
-        if st.button("Sh_B >>"):
-            if SB == "SS" and st.session_state.setpr != 0:
-                save_pe("SB", st.session_state.setpr, total, st.session_state.setnote)
-                st.session_state.setpr = 0
-                st.rerun()
-            
+        if st.button("30 Minutes", key="30m"):
+            interval = "30"
 
-    st.write(f"Price_set? __ {st.session_state.setpr != 0}")
-    st.write(f"SB_type: {updated_data["type"].iloc[-1]}")
-    #show which timeframes are in bar chart:
+    # Default interval
+    if 'interval' not in locals():
+        interval = "5"
 
-    #display pe_table
-    # Read the updated CSV file ---- example
-    updated_data = pd.read_csv(pe_file, names=["type", "B_pr", "S_pr", "pl", "total", "temp_pr", "note"])
+    # Add a button to refresh data
+    if st.button("Refresh Data"):
+        st.cache_data.clear()  # Clear cached data to force a fresh fetch
 
-    st.markdown(f'<p style="color:orange; font-weight:bold;">pe_table: </s></p>', unsafe_allow_html=True)
-    
-    st.dataframe(updated_data.tail(5), hide_index=False)
-    st.write(f"{len(updated_data["total"])} rows")
-    #with col2:
+    # Fetch data for the user-specified stock and interval
+    data = fetch_stock_data_finnhub(ticker, interval=interval)
+    if data.empty:
+        st.error(f"Failed to fetch data for {ticker}. Please check the ticker and try again.")
+        return
 
-       # st.write(":::::::::::::::::::::::::::::::::::::::::::::::::::")
-    st.write(f"now: _<{now}>_{get_time_now()}")
-   
-    #st.write(f"Pre_Post_status: {st.session_state.prepo}")
-    if st.button("Clear data"):
-        #st.session_state.stop_sleep = 1
-        new_data = pd.DataFrame([{
-                    "TimeStamp": f"{current_time}",
-                    "type": "AAA",
-                    "B_pr": 0,
-                    "S_pr": 0,
-                    "pl": 0,
-                    "total": 0, 
-                    "temp_pr": 0,
-                    "note":"zzz"
-                }])
-                # clear CSV file
-        new_data.to_csv(pe_file, mode="w", header=False, index=False)
-        st.write("data cleared")
-        st.rerun()
-            
-    st.write("---------------------")
+    # Add a slider for backtracking
+    backtrack_options = [0, 2, 5, 7, 10, 20, 30, 45, 60, 90, 100, 120]
+    selected_backtrack = st.slider(
+        "Select number of points to backtrack:",
+        min_value=min(backtrack_options),
+        max_value=max(backtrack_options),
+        value=0,  # Default value
+        step=1,  # Step size
+        key="backtrack_slider"
+    )
 
+    # Adjust the data based on the selected backtrack
+    data_recent = data.tail(300 + selected_backtrack)  # Get the most recent 300 + selected_backtrack data points
+    data_recent = data_recent.head(300)  # Use only the first 300 points after backtracking
 
+    # Get the current price (last available price in the data)
+    current_price = data_recent['Close'].iloc[-1]
+
+    # Fetch the previous day's close price
+    previous_close = fetch_previous_close_finnhub(ticker)
+    if previous_close is None:
+        st.error("Failed to fetch the previous day's close price. Please try again.")
+        return
+
+    change = current_price - previous_close
+
+    # Calculate percentage change
+    percentage_change = calculate_percentage_change(current_price, previous_close)
+
+    # Get current local time
+    midwest = pytz.timezone("America/chicago")
+    current_time = datetime.now(midwest).strftime("%H:%M:%S")
+
+    # Display the percentage change message with current local time
+    st.write("### Current Price vs Previous Close___" f"{ticker}")
+    if percentage_change >= 0:
+        st.success(f"🟢 {ticker}:  **{current_price:.2f}**, **{change:.2f}**  (**{percentage_change:.2f}%**, previous_close **{previous_close:.2f}**)  |	{current_time}	")
+    else:
+        st.error(f"🔴 {ticker}:  **{current_price:.2f}**, **{change:.2f}**  (**{percentage_change:.2f}%**, prev_close **{previous_close:.2f}**)  |	{current_time}	")
+
+    # Perform linear regression (using only the most recent 300 points)
+    X, y, y_pred_linear, r2_linear, data_recent = perform_regression(data_recent, degree=1)
+
+    # Add buttons for polynomial degree selection
+    st.write("### Polynomial Regression Analysis")
+    col_deg2, col_deg3 = st.columns(2)
+    with col_deg2:
+        if st.button("Degree 2"):
+            degree = 2
+    with col_deg3:
+        if st.button("Degree 3"):
+            degree = 3
+
+    # Default degree
+    if 'degree' not in locals():
+        degree = 3  # Default to degree 3
+
+    # Display the current polynomial degree
+    st.write(f"**Current Polynomial Degree:** {degree}")
+
+    # Perform polynomial regression with the selected degree
+    X, y, y_pred_poly, r2_poly, _ = perform_regression(data_recent, degree=degree)
+
+    # Calculate residuals and standard deviation for the polynomial model
+    residuals = y - y_pred_poly
+    std_dev = np.std(residuals)
+
+    # Calculate exponential moving averages
+    data_recent['EMA_9'] = data_recent['Close'].ewm(span=9, adjust=False).mean()
+    data_recent['EMA_20'] = data_recent['Close'].ewm(span=20, adjust=False).mean()
+
+    # Determine the trend message
+    if current_price > data_recent['EMA_9'].iloc[-1] and data_recent['EMA_9'].iloc[-1] > data_recent['EMA_20'].iloc[-1]:
+        trend_message = f"Trend UP"
+        trend_color = "green"
+    elif current_price < data_recent['EMA_9'].iloc[-1] and data_recent['EMA_9'].iloc[-1] < data_recent['EMA_20'].iloc[-1]:
+        trend_message = f"Trend DOWN"
+        trend_color = "red"
+    else:
+        trend_message = f"Trend NEUTRAL"
+        trend_color = "gray"
+
+    # Extract time (hours and minutes) for the x-axis
+    time_labels = data_recent.index.strftime('%H:%M')  # Format time as HH:MM
+
+    # Simplify x-axis labels based on the interval
+    if interval == "30":
+        # For 30-minute interval, show only every 3 hours (e.g., 09:00, 12:00, 15:00)
+        simplified_time_labels = [label if label.endswith('00') and int(label.split(':')[0]) % 3 == 0 else '' for label in time_labels]
+    else:
+        # For 1-minute and 5-minute intervals, show only hours (e.g., 09:00, 10:00)
+        simplified_time_labels = [label if label.endswith('00') else '' for label in time_labels]
+
+    # ... (rest of the code remains the same until the plotting section)
 
 if __name__ == "__main__":
     main()
+

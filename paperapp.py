@@ -18,7 +18,7 @@ utc_time = datetime.now(timezone.utc)
 # Get the correct UNIX timestamp
 st.write("Current UNIX Timestamp:", int(utc_time.timestamp()))
 
-st.write("Current UNIX Timestamp:", int(datetime.utcnow().timestamp()))
+
 
 
 # Finnhub API key

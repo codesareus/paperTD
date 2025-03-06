@@ -98,7 +98,7 @@ def main():
     
 
     # Adjust the data based on the selected backtrack
-    data_recent = data.tail(300 )  # Get the most recent 300 + selected_backtrack data points
+    data_recent = data # Get the most recent 300 + selected_backtrack data points
     st.write(data_recent.tail(5))
 
     # Get the current price (last available price in the data)

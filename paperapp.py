@@ -80,7 +80,7 @@ def fetch_daily5_finnhub(ticker):
 
 # Streamlit app
 def main():
-    st.title("Stock Price Regression Analysis")
+    st.title("finnhub")
     
     # Input box for user to enter stock ticker
     ticker = st.text_input("Enter Stock Ticker (e.g., SPY, AAPL, TSLA):", value="SPY").upper()

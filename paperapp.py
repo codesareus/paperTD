@@ -68,33 +68,26 @@ def fetch_premarket_price(symbol):
     return None
 
 def main():
-    st.title("Premarket Stock Price Fetcher")
-    st.write("Fetch the premarket price of any stock using Finnhub API.")
+    
 
-    # Input for stock symbol
-    symbol = st.text_input("Enter Stock Symbol (e.g., AAPL):").upper()
+# Your Finnhub API key
+    API_KEY = FINNHUB_API_KEY
 
-    if st.button("Get Premarket Price"):
-        if symbol:
-            price = fetch_premarket_price(symbol)
-            if price:
-                st.success(f"The premarket price of {symbol} is ${price:.2f}")
-        else:
-            st.warning("Please enter a valid stock symbol.")
+# Stock symbol (example: AAPL)
+    symbol = "SPY"
 
-    st.title("Stock Price Fetcher")
-    st.write("Fetch the current price of any stock using Finnhub API.")
+# Finnhub API endpoint for real-time stock quote
+    url = f"https://finnhub.io/api/v1/quote?symbol={symbol}&token={API_KEY}"
 
-    # Input for stock symbol
-    symbol = st.text_input("Enter Stock Symbol (e.g., AAPL):").upper()
+# Make the request
+    response = requests.get(url)
+    data = response.json()
 
-    if st.button("Get Price"):
-        if symbol:
-            price = fetch_stock_price(symbol)
-            if price:
-                st.success(f"The current price of {symbol} is ${price:.2f}")
-        else:
-            st.warning("Please enter a valid stock symbol.")
+# Extract premarket price (if available)
+    premarket_price = data.get("pm", "No premarket data available")
+
+    st.write(f"Premarket price for {symbol}: {premarket_price}")
+
 
 if __name__ == "__main__":
     main()

@@ -77,9 +77,6 @@ def fetch_daily5_finnhub(ticker):
     df.set_index("Time", inplace=True)
     return df["Close"]
 
-rom datetime import datetime
-import pytz
-
 # Function to fetch the previous day's close price
 def fetch_previous_close(ticker):
     close_prices = fetch_daily5(ticker)

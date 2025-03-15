@@ -19,7 +19,7 @@ def get_letter_shapes():
     ]) * 1.5
     
     Six = np.array([
-        [0, 1],          # Top start
+        [0.75, 1],          # Top start
         [-1, 0.5],       # Left curve top
         [-1, -0.5],      # Left curve bottom
         [0, -1],         # Bottom center

@@ -82,10 +82,16 @@ def generate_firework(ax, x_center, y_center, is_word=False, character=None):
 def update(frame, ascending_fireworks, exploded_scatters, ax, series_launched):
     # Launch the series "HAPPY M Y 2" at frame 50
     if frame == 50 and not series_launched[0]:
-        series_letters = ['H', 'A', 'P', 'P', 'Y', 'M','Y','2']
+        # In the update function's series launch section (around line 63):
+        series_letters = ['H','A','P','P','Y', None, 'M','Y','2']  # Added None for space
         num_letters = len(series_letters)
-        series_x = np.linspace(-14, 14, num_letters)
+        series_x = np.linspace(-16, 16, num_letters)  # Wider spread
         explosion_heights = np.linspace(20, 27, num_letters)
+    
+        for i, char in enumerate(series_letters):
+            if char is None:  # Skip creating a firework for the space
+                continue
+        # Rest of the firework creation code remains the same...
         speed = 1.0
         for i in range(num_letters):
             char = series_letters[i]

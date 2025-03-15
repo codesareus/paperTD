@@ -18,9 +18,22 @@ def get_letter_shapes():
         [-0.8, 0], [0.8, 0]     # Horizontal bar
     ]) * 1.5
     
-    Six = np.array([[1, 1], [-1, 0.5], [-0.5, -0.5], [0.5, -0.5], [0.5, 0.5], [-1, 0.5]]) * 2
-
-    Zero = np.array([[0, 1], [-1, 0], [0, -1], [1, 0], [0, 1]]) * 2
+    Six = np.array([
+        [0, 1],          # Top start
+        [-1, 0.5],       # Left curve top
+        [-1, -0.5],      # Left curve bottom
+        [0, -1],         # Bottom center
+        [1, -0.5],       # Right curve bottom
+        [0.5, 0],        # Inner curve
+        [0, 0.5]         # Closing point
+    ]) * 1.5
+    
+    Zero = np.array([
+        [0, 1], [-0.5, 0.87], [-0.87, 0.5], [-1, 0],  # Left semicircle
+        [-0.87, -0.5], [-0.5, -0.87], [0, -1],        # Bottom semicircle
+        [0.5, -0.87], [0.87, -0.5], [1, 0],           # Right semicircle
+        [0.87, 0.5], [0.5, 0.87], [0, 1]              # Top semicircle
+    ]) * 1.5
 
     # Points for "Y"
     Y = np.array([[-1, 1], [0, 0], [0, -1], [0.25, 0], [1, 1]]) * 2
@@ -34,8 +47,8 @@ def get_letter_shapes():
         'P': [(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)],  # Circular P
         'Y': [(0, 1), (1, 2), (2, 3), (2, 4)],  # Correct "Y" shape
         'W': [(0, 1), (1, 2), (2, 3), (3, 4)],  # Peaks of M
-        '6': [(0, 1), (1, 2), (2, 3), (2, 4),  (2, 4) ],# Curved 2
-        '0': [(0, 1), (1, 2), (2, 3), (2, 4)]  # Curved 2
+        '6': [(0,1), (1,2), (2,3), (3,4), (4,5), (5,6), (6,0)],  # Continuous 6 shape
+        '0': [(0,1), (1,2), (2,3), (3,4), (4,5), (5,6), (6,7), (7,8), (8,9), (9,10), (10,11), (11,0)],  # Full circle
     }
 
     return {

@@ -18,10 +18,14 @@ def get_letter_shapes():
         [-0.8, 0], [0.8, 0]     # Horizontal bar
     ]) * 1.5
     
-    Two = np.array([[-1, 1], [0, 1], [-1, 0], [-1, -0.5], [0, -1]]) * 2
+    Six = np.array([[-1, 1], [0, 1], [-1, 0], [-1, -0.5], [0, -1]]) * 2
+
+    Zero = np.array([[-1, 1], [0, 1], [-1, 0], [-1, -0.5], [0, -1]]) * 2
 
     # Points for "Y"
     Y = np.array([[-1, 1], [0, 0], [0, -1], [0.25, 0], [1, 1]]) * 2
+
+    W = np.array([[-1, 1], [-0.5, 0], [0, 0.5], [0.5, 0], [1, 1]]) * 2
 
     # Edges for each character (explicit connections between points)
     letter_edges = {
@@ -29,8 +33,9 @@ def get_letter_shapes():
         'A': [(0, 1), (1, 2), (2, 3), (4, 5)],  # Triangle and horizontal bar
         'P': [(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)],  # Circular P
         'Y': [(0, 1), (1, 2), (2, 3), (2, 4)],  # Correct "Y" shape
-        'M': [(0, 1), (1, 2), (2, 3), (3, 4)],  # Peaks of M
-        '2': [(0, 1), (1, 2), (2, 3), (2, 4)]  # Curved 2
+        'W': [(0, 1), (1, 2), (2, 3), (3, 4)],  # Peaks of M
+        '6': [(0, 1), (1, 2), (2, 3), (2, 4)]  # Curved 2
+        '0': [(0, 1), (1, 2), (2, 3), (2, 4)]  # Curved 2
     }
 
     return {
@@ -38,8 +43,9 @@ def get_letter_shapes():
         'A': np.array([[-1, -1], [-0.5, 1], [0.5, 1], [1, -1], [-0.5, 0], [0.5, 0]]) * 2,
         'P': np.array([[-1, -1], [-1, 1], [0, 1], [1, 0], [-1, 0]]) * 2,
         'Y': Y,  # Updated "Y" points
-        'M': np.array([[-1, -1], [-1, 1], [0, 0], [1, 1], [1, -1]]) * 2,
-        '2': Two
+        'W': W,
+        '6': Six,
+        '0': Zero
     }, letter_edges
 
 # Modified firework generation with better particle control
@@ -83,7 +89,7 @@ def update(frame, ascending_fireworks, exploded_scatters, ax, series_launched):
     # Launch the series "HAPPY M Y 2" at frame 50
     if frame == 50 and not series_launched[0]:
         # In the update function's series launch section (around line 63):
-        series_letters = ['H','A','P','P','Y', 'M','Y','2']  # Added None for space
+        series_letters = ['H','A','P','P','Y', 'H','W','6','0']  # Added None for space
         num_letters = len(series_letters)
         series_x = np.linspace(-16, 16, num_letters)  # Wider spread
         explosion_heights = np.linspace(20, 27, num_letters)

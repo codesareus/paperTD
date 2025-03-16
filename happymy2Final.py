@@ -18,33 +18,44 @@ def get_letter_shapes():
         [-0.8, 0], [0.8, 0]     # Horizontal bar
     ]) * 1.5
     
-    Two = np.array([
-        [-1, 1], [0, 1], [1, 1],          # Top bar
-        [1, 0.5], [0.5, 0], [-0.5, 0],    # Upper curve
-        [-1, -0.5], [-1, -1], [1, -1]     # Lower curve and base
-    ]) * 1.5
-    
+    Two = np.array([[-1, 1], [0, 1], [-1, 0], [-1, -1], [0, -1]]) * 2
+
+    # Points for "Y"
+    Y = np.array([[-1, 1], [0, 0], [0, -1], [0.25, 0], [1, 1]]) * 2
+
+    # Edges for each character (explicit connections between points)
+    letter_edges = {
+        'H': [(0, 1), (2, 3), (4, 5)],  # Connect left, right, and middle bars
+        'A': [(0, 1), (1, 2), (2, 3), (4, 5)],  # Triangle and horizontal bar
+        'P': [(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)],  # Circular P
+        'Y': [(0, 1), (1, 2), (2, 3), (2, 4)],  # Correct "Y" shape
+        'M': [(0, 1), (1, 2), (2, 3), (3, 4)],  # Peaks of M
+        '2': [(0, 1), (1, 2), (2, 3), (2, 4)]  # Curved 2
+    }
+
     return {
         'H': H, 
         'A': np.array([[-1, -1], [-0.5, 1], [0.5, 1], [1, -1], [-0.5, 0], [0.5, 0]]) * 2,
         'P': np.array([[-1, -1], [-1, 1], [0, 1], [1, 0], [-1, 0]]) * 2,
-        'Y': np.array([[-1, -1], [-0.5, 0], [0, 1], [0.5, 0], [1, -1]]) * 2,
+        'Y': Y,  # Updated "Y" points
         'M': np.array([[-1, -1], [-1, 1], [0, 0], [1, 1], [1, -1]]) * 2,
         '2': Two
-    }
+    }, letter_edges
 
 # Modified firework generation with better particle control
 def generate_firework(ax, x_center, y_center, is_word=False, character=None):
-    letter_shapes = get_letter_shapes()
+    letter_shapes, letter_edges = get_letter_shapes()
     if is_word and character:
         num_particles_per_point = 15  # Increased particle density
         letter_shape = letter_shapes[character]
+        edges = letter_edges[character]
         x, y = [], []
         
         # Add intermediate points for better shape definition
-        for i in range(len(letter_shape)-1):
-            start = letter_shape[i]
-            end = letter_shape[i+1]
+        for edge in edges:
+            start_idx, end_idx = edge
+            start = letter_shape[start_idx]
+            end = letter_shape[end_idx]
             points = np.linspace(start, end, 5)
             for point in points:
                 offsets = np.random.normal(loc=point, scale=0.1, size=(num_particles_per_point, 2))
@@ -71,9 +82,10 @@ def generate_firework(ax, x_center, y_center, is_word=False, character=None):
 def update(frame, ascending_fireworks, exploded_scatters, ax, series_launched):
     # Launch the series "HAPPY M Y 2" at frame 50
     if frame == 50 and not series_launched[0]:
-        series_letters = ['H', 'A', 'P', 'P', 'Y', 'M', 'Y', '2']
+        # In the update function's series launch section (around line 63):
+        series_letters = ['H','A','P','P','Y', 'M','Y','2']  # Added None for space
         num_letters = len(series_letters)
-        series_x = np.linspace(-14, 14, num_letters)
+        series_x = np.linspace(-16, 16, num_letters)  # Wider spread
         explosion_heights = np.linspace(20, 27, num_letters)
         speed = 1.0
         for i in range(num_letters):

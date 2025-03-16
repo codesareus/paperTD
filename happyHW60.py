@@ -18,10 +18,27 @@ def get_letter_shapes():
         [-0.8, 0], [0.8, 0]     # Horizontal bar
     ]) * 1.5
     
-    Two = np.array([[-1, 1], [0, 1], [-1, 0], [-1, -0.5], [0, -1]]) * 2
+    Six = np.array([
+        [1, 1],          # Top start
+        [-1, 0.5],       # Left curve top
+        [-1, -0.5],      # Left curve bottom
+        [0, -1],         # Bottom center
+        [1, -0.5],       # Right curve bottom
+        [0.5, 0],        # Inner curve
+        [0, 0.5]         # Closing point
+    ]) * 1.5
+    
+    Zero = np.array([
+        [0, 1], [-0.5, 0.87], [-0.87, 0.5], [-1, 0],  # Left semicircle
+        [-0.87, -0.5], [-0.5, -0.87], [0, -1],        # Bottom semicircle
+        [0.5, -0.87], [0.87, -0.5], [1, 0],           # Right semicircle
+        [0.87, 0.5], [0.5, 0.87], [0, 1]              # Top semicircle
+    ]) * 1.5
 
     # Points for "Y"
     Y = np.array([[-1, 1], [0, 0], [0, -1], [0.25, 0], [1, 1]]) * 2
+
+    W = np.array([[-1, 0.75], [-0.5, -0.75], [0, 0], [0.5, -0.75], [1, 0.75]]) * 2
 
     # Edges for each character (explicit connections between points)
     letter_edges = {
@@ -29,8 +46,9 @@ def get_letter_shapes():
         'A': [(0, 1), (1, 2), (2, 3), (4, 5)],  # Triangle and horizontal bar
         'P': [(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)],  # Circular P
         'Y': [(0, 1), (1, 2), (2, 3), (2, 4)],  # Correct "Y" shape
-        'M': [(0, 1), (1, 2), (2, 3), (3, 4)],  # Peaks of M
-        '2': [(0, 1), (1, 2), (2, 3), (2, 4)]  # Curved 2
+        'W': [(0, 1), (1, 2), (2, 3), (3, 4)],  # Peaks of M
+        'S': [(0,1), (1,2), (2,3), (3,4), (4,5), (5,6), (6,0)],  # Continuous 6 shape
+        'Z': [(0,1), (1,2), (2,3), (3,4), (4,5), (5,6), (6,7), (7,8), (8,9), (9,10), (10,11), (11,0)],  # Full circle
     }
 
     return {
@@ -38,8 +56,9 @@ def get_letter_shapes():
         'A': np.array([[-1, -1], [-0.5, 1], [0.5, 1], [1, -1], [-0.5, 0], [0.5, 0]]) * 2,
         'P': np.array([[-1, -1], [-1, 1], [0, 1], [1, 0], [-1, 0]]) * 2,
         'Y': Y,  # Updated "Y" points
-        'M': np.array([[-1, -1], [-1, 1], [0, 0], [1, 1], [1, -1]]) * 2,
-        '2': Two
+        'W': W,
+        'S': Six,
+        'Z': Zero
     }, letter_edges
 
 # Modified firework generation with better particle control
@@ -80,22 +99,25 @@ def generate_firework(ax, x_center, y_center, is_word=False, character=None):
 
 # Function to update the fireworks animation
 def update(frame, ascending_fireworks, exploded_scatters, ax, series_launched):
-    # Launch the series "HAPPY M Y 2" at frame 50
     if frame == 50 and not series_launched[0]:
-        series_letters = ['H', 'A', 'P', 'P', 'Y', 'M', 'Y', '2']
+        series_letters = ['H','A','P','P','Y','H','W','S','Z']
         num_letters = len(series_letters)
-        series_x = np.linspace(-14, 14, num_letters)
-        explosion_heights = np.linspace(20, 27, num_letters)
-        speed = 1.0
-        for i in range(num_letters):
-            char = series_letters[i]
-            x_start = series_x[i]
-            scatter = ax.scatter(x_start, -5, s=10, c="white", alpha=0.8)
+        
+        # Adjusted explosion heights with steeper progression
+        base_height = 20
+        explosion_heights = np.linspace(base_height, base_height + num_letters* 1.5, num_letters)
+        
+        # Space characters evenly with wider spread
+        series_x = np.linspace(-18, 18, num_letters)
+        
+        # Create ascending fireworks for each character
+        for i, char in enumerate(series_letters):
+            scatter = ax.scatter(series_x[i], -5, s=10, c="white", alpha=0.8)
             ascending_fireworks.append({
                 "scatter": scatter,
-                "x": x_start,
+                "x": series_x[i],
                 "y": -5,
-                "speed": speed,
+                "speed": 1.2,  # Faster ascent for clearer sequence
                 "explosion_height": explosion_heights[i],
                 "character": char
             })

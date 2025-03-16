@@ -1,0 +1,13 @@
+
+numpy
+matplotlib
+datetime
+scikit-learn
+streamlit
+pandas
+yfinance
+pytz
+gtts
+pandas_market_calendars
+pygame
+requests
